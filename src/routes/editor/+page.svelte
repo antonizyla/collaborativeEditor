@@ -7,11 +7,16 @@
 
 	let store = storageEngine;
 
-	let loading = $state(!browser);
+	let local = true;
+	if (typeof localStorage !== 'undefined') {
+		store.retrieveLocal();
+		local = false;
+	}
 
+	let loading = $state(local);
 </script>
 
 <div class="flex h-screen flex-row">
 	<EditorSidebar {store} {loading}></EditorSidebar>
-	<Editor {store} {loading}></Editor>
+	<Editor {loading}></Editor>
 </div>

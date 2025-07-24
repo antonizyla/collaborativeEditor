@@ -1,15 +1,10 @@
 <script lang="ts">
-	import { Button } from '$lib/components/ui/button';
-
-	import BinIcon from '@lucide/svelte/icons/trash';
-	import SaveIcon from '@lucide/svelte/icons/save';
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 
-	let { store, loading } = $props();
+	let { loading } = $props();
 	import Toolbar from './Toolbar.svelte';
 
-	import {tabs} from "$lib/editors.svelte";
-
+	import { tabs } from '$lib/editors.svelte';
 </script>
 
 <div class="my-2 flex w-screen flex-col">
@@ -37,7 +32,12 @@
 	{:else}
 		<div class="h-screen">
 			{#if tabs.getCurrentlyOpenFile()}
-				<div class="mr-2 min-h-full bg-gray-50" bind:innerHTML={tabs.currentTextBuffer} contenteditable>
+				<div
+					class="font-lg mr-2 min-h-full border-1 bg-gray-100 p-18 px-18 caret-foreground focus:outline-none"
+					bind:this={tabs.editorElement}
+					bind:innerHTML={tabs.currentTextBuffer}
+					contenteditable
+				>
 					{tabs.currentTextBuffer}
 				</div>
 			{:else}

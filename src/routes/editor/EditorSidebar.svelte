@@ -43,7 +43,7 @@
 		</div>
 	{:else}
 		<div class=" flex flex-col gap-1 border-t-2 pt-2">
-			{#each store.listFiles() as file}
+			{#each store.listFiles() as file, index (file.identifier)}
 				<div
 					class="text-3xs flex min-w-[100%] flex-row items-center justify-between"
 					class:bg-accent={tabs.getCurrentlyOpenFile()?.identifier === file.identifier}
@@ -52,10 +52,13 @@
 						variant="ghost"
 						class="flex grow flex-row justify-start"
 						onclick={() => {
-							if (tabs.open){
-								tabs.saveEditorContents(tabs.open)
+							if (tabs.open) {
+								tabs.saveEditorContents(tabs.open);
 							}
 							tabs.openEditor(file.identifier);
+							if (tabs.editorElement) {
+								tabs.editorElement.focus();
+							}
 						}}
 					>
 						<div class="flex flex-row items-center gap-2">
