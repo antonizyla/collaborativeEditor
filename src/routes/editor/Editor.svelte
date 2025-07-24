@@ -6,43 +6,10 @@
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 
 	let { store, loading } = $props();
-	import { getF } from '$lib/editor.svelte';
-	import { onMount } from 'svelte';
+	import Toolbar from './Toolbar.svelte';
 
-	const currentF = getF();
+	import {tabs} from "$lib/editors.svelte";
 
-	let editingName = $derived(currentF.get()?.author ? currentF.get()?.filename : '');
-	let editingText = $derived(currentF.get()?.author ? currentF.get()?.content : '');
-	let unsaved: boolean = $derived(editingText != currentF.get()?.content);
-
-
-	// for autosaving every 5s, following svelte playground example
-	let elapsed = $state(0);
-	let duration = $state(5000);
-
-	onMount(() => {
-		let last_time = performance.now();
-
-		let frame = requestAnimationFrame(function update(time) {
-			frame = requestAnimationFrame(update);
-
-			elapsed += Math.min(time - last_time, duration - elapsed);
-			last_time = time;
-		});
-
-		return () => {
-			cancelAnimationFrame(frame);
-		};
-	});
-
-	$effect(() => {
-		let f = currentF.get();
-		if (f != undefined && elapsed >= 5000) {
-			f.content = editingText;
-			currentF.set(f);
-			elapsed = 0;
-		}
-	});
 </script>
 
 <div class="my-2 flex w-screen flex-col">
@@ -56,35 +23,7 @@
 			</div>
 		</div>
 	{:else}
-		<div class="m-2 flex flex-row items-center justify-between">
-			{#if currentF.get()}
-				<div class="flex flex-row">
-					<div class="italic" spellcheck={false} bind:innerHTML={editingName} contenteditable>
-						{editingName}
-					</div>
-					<div class:hidden={!unsaved}>*</div>
-				</div>
-			{:else}
-				<div class=""></div>
-			{/if}
-			<div class="">
-				<Button
-					onclick={() => {
-						if (!currentF.get()) {
-							return;
-						}
-						if (editingName != currentF.get()?.filename) {
-							// update the name of the file
-							store.changeFileName(currentF.get(), editingName);
-						}
-						store.updateContents(currentF.get(), editingText);
-					}}
-					disabled={!currentF.get()}
-					size="sm"><SaveIcon /></Button
-				>
-				<Button disabled={!currentF.get()} size="sm"><BinIcon /></Button>
-			</div>
-		</div>
+		<Toolbar></Toolbar>
 	{/if}
 	<!--Text Editing-->
 	{#if loading}
@@ -97,9 +36,9 @@
 		</div>
 	{:else}
 		<div class="h-screen">
-			{#if currentF.get()}
-				<div class="mr-2 min-h-full bg-gray-50" bind:innerHTML={editingText} contenteditable>
-					{editingText}
+			{#if tabs.getCurrentlyOpenFile()}
+				<div class="mr-2 min-h-full bg-gray-50" bind:innerHTML={tabs.currentTextBuffer} contenteditable>
+					{tabs.currentTextBuffer}
 				</div>
 			{:else}
 				<div class="pt-60 text-center select-none">

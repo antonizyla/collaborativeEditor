@@ -17,7 +17,7 @@
 		<Label for="email">Email Address *</Label>
 		<div class=" flex flex-row gap-4">
 			<Input
-				class="w-max"
+				class="w-max grow"
 				type="email"
 				id="email"
 				name="email"

@@ -7,8 +7,7 @@
 
 	let { store, loading } = $props();
 
-	import { getF } from '$lib/editor.svelte';
-	const currentFile = getF();
+	import { tabs } from '$lib/editors.svelte';
 </script>
 
 <!--Sidebar-->
@@ -47,13 +46,16 @@
 			{#each store.listFiles() as file}
 				<div
 					class="text-3xs flex min-w-[100%] flex-row items-center justify-between"
-					class:bg-accent={currentFile.get()?.identifier === file.identifier}
+					class:bg-accent={tabs.getCurrentlyOpenFile()?.identifier === file.identifier}
 				>
 					<Button
 						variant="ghost"
 						class="flex grow flex-row justify-start"
 						onclick={() => {
-							currentFile.set(file);
+							if (tabs.open){
+								tabs.saveEditorContents(tabs.open)
+							}
+							tabs.openEditor(file.identifier);
 						}}
 					>
 						<div class="flex flex-row items-center gap-2">
@@ -64,9 +66,7 @@
 					<Button
 						onclick={() => {
 							store.deleteFile(file.identifier);
-							if (currentFile.get()?.identifier == file.identifier) {
-								currentFile.nullify();
-							}
+							tabs.closeEditor(file);
 						}}
 						variant="outline"
 						size="sm"
