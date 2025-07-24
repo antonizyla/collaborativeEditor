@@ -5,14 +5,44 @@
 	import SaveIcon from '@lucide/svelte/icons/save';
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
 
-	let {store, loading } = $props();
-	import {getF} from "$lib/editor.svelte"
+	let { store, loading } = $props();
+	import { getF } from '$lib/editor.svelte';
+	import { onMount } from 'svelte';
 
 	const currentF = getF();
 
 	let editingName = $derived(currentF.get()?.author ? currentF.get()?.filename : '');
 	let editingText = $derived(currentF.get()?.author ? currentF.get()?.content : '');
+	let unsaved: boolean = $derived(editingText != currentF.get()?.content);
 
+
+	// for autosaving every 5s, following svelte playground example
+	let elapsed = $state(0);
+	let duration = $state(5000);
+
+	onMount(() => {
+		let last_time = performance.now();
+
+		let frame = requestAnimationFrame(function update(time) {
+			frame = requestAnimationFrame(update);
+
+			elapsed += Math.min(time - last_time, duration - elapsed);
+			last_time = time;
+		});
+
+		return () => {
+			cancelAnimationFrame(frame);
+		};
+	});
+
+	$effect(() => {
+		let f = currentF.get();
+		if (f != undefined && elapsed >= 5000) {
+			f.content = editingText;
+			currentF.set(f);
+			elapsed = 0;
+		}
+	});
 </script>
 
 <div class="my-2 flex w-screen flex-col">
@@ -28,11 +58,11 @@
 	{:else}
 		<div class="m-2 flex flex-row items-center justify-between">
 			{#if currentF.get()}
-			<div class="flex-row flex">
-				<div class="italic" spellcheck={false} bind:innerHTML={editingName} contenteditable>
-					{editingName} 
-				</div>
-				<div class:hidden={editingText === currentF.get()?.content}>*</div>
+				<div class="flex flex-row">
+					<div class="italic" spellcheck={false} bind:innerHTML={editingName} contenteditable>
+						{editingName}
+					</div>
+					<div class:hidden={!unsaved}>*</div>
 				</div>
 			{:else}
 				<div class=""></div>

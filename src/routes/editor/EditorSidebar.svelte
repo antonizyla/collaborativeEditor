@@ -24,7 +24,7 @@
 			<div class="font-bold">Filesystem</div>
 			<Button
 				onclick={() => {
-					store.createFile('Random', 'auto');
+					store.createFile('Random', 'user');
 				}}
 				size="sm"
 			>
