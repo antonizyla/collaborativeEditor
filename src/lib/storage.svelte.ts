@@ -9,7 +9,7 @@ export type file = {
 	saved: boolean;
 };
 
-class storage {
+class Storage {
 	displayed: file[];
 	files: Record<string, file>;
 	next_number: number;
@@ -37,6 +37,7 @@ class storage {
 			saved: true
 		};
 		this.files[file.identifier] = file;
+		this.saveLocal();
 	}
 
 	listFiles(): file[] {
@@ -53,6 +54,11 @@ class storage {
 
 	updateContents(file: file, newContent: string) {
 		this.files[file.identifier].content = newContent;
+		this.saveLocal();
+	}
+
+	updateFileName(file: file, newName: string) {
+		this.files[file.identifier].filename = newName;
 		this.saveLocal();
 	}
 
@@ -74,6 +80,7 @@ class storage {
 			console.log('No Files in LocalStorage');
 			return;
 		}
+		// @ts-ignore - already check if it's null and exit early
 		const stored = JSON.parse(localStorage.getItem('files'));
 		this.displayed = stored.displayed;
 		this.files = stored.files;
@@ -81,4 +88,4 @@ class storage {
 	}
 }
 
-export const storageEngine = new storage();
+export const storageEngine = new Storage();

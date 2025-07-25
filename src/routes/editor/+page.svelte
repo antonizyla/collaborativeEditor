@@ -3,7 +3,6 @@
 	import Editor from './Editor.svelte';
 
 	import { storageEngine } from '$lib/storage.svelte';
-	import { browser } from '$app/environment';
 
 	let store = storageEngine;
 

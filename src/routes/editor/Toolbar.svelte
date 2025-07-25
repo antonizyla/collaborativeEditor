@@ -5,28 +5,39 @@
 
 	import { tabs } from '$lib/editors.svelte';
 	import { storageEngine } from '$lib/storage.svelte';
+	import BindableButton from '$lib/components/ui/button/bindableButton.svelte';
 </script>
 
 <div class="flex min-h-10 flex-row justify-between">
 	<div class="flex flex-row items-end">
 		{#each tabs.getEditors() as tab, _ (tab.identifier)}
 			<div class="">
-				<Button
+				<BindableButton
 					class="flex flex-row gap-5 pr-4"
+					spellcheck={false}
 					variant={tabs.getCurrentlyOpenFile() === tab ? 'default' : 'outline'}
 					size={tabs.getCurrentlyOpenFile() === tab ? 'default' : 'sm'}
+					bind:innerHTML={tabs.editableTabNames[tab.identifier]}
+					contenteditable={true}
 					onclick={() => {
-						if (tabs.open) {
-							tabs.saveEditorContents(tabs.open);
-						}
-						tabs.openEditor(tab.identifier);
-						if (tabs.editorElement) {
-							tabs.editorElement.focus();
-						}
+						console.log('single click');
+						clearTimeout(tabs.tabClickTimer);
+						tabs.tabClickTimer = setTimeout(() => {
+							if (tabs.open) {
+								tabs.saveEditorContents(tabs.open);
+							}
+							tabs.openEditor(tab.identifier);
+							if (tabs.editorElement) {
+								tabs.editorElement.focus();
+							}
+						}, 100);
+					}}
+					ondblclick={() => {
+						clearTimeout(tabs.tabClickTimer);
+						console.log('double click');
 					}}
 				>
-					{tab.filename}
-				</Button>
+				</BindableButton>
 			</div>
 			<Button
 				onclick={() => {
@@ -46,6 +57,9 @@
 				if (tabs.open) {
 					tabs.open.content = tabs.currentTextBuffer;
 					tabs.saveEditorContents(tabs.open);
+					tabs.getEditors().forEach(editor => {
+						tabs.saveTabNameEdit(editor.identifier);
+					});
 				}
 			}}
 			disabled={!tabs.open}>Save</Button
@@ -56,6 +70,7 @@
 					storageEngine.deleteFile(tabs.open.identifier);
 					tabs.closeEditor(tabs.open);
 					tabs.currentTextBuffer = '';
+					tabs.currentFileName = '';
 				}
 			}}
 			disabled={!tabs.open}

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
+	import Toolbar from './Toolbar.svelte';
 
 	let { loading } = $props();
-	import Toolbar from './Toolbar.svelte';
 
 	import { tabs } from '$lib/editors.svelte';
 </script>

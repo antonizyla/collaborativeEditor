@@ -8,6 +8,7 @@
 	let { store, loading } = $props();
 
 	import { tabs } from '$lib/editors.svelte';
+
 </script>
 
 <!--Sidebar-->
