@@ -47,7 +47,9 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
+		"@aws-sdk/client-ses": "^3.848.0",
 		"@sveltejs/adapter-vercel": "^5.8.0",
+		"dotenv": "^17.2.1",
 		"pg": "^8.16.3"
 	}
 }

@@ -1,5 +1,7 @@
 import { db } from "./database";
+import { sendEmail } from "./emails";
 import type { UUID } from "./sessions";
+import { getUserById } from "./users";
 
 interface Otp {
     otpId: UUID,
@@ -22,23 +24,28 @@ function generateOtpCode(): string {
     return "123456"
 }
 
-export function sendUserOTP(email: string, code: string) {
+export async function sendUserOTP(email: string, code: string) {
     console.log("sending OTP code " + code + " to " + email);
+    await sendEmail(email, code);
 }
 
 export async function createAndSetOTP(userId: UUID, keepAliveMin: number) {
 
     const currentTime = new Date();
 
-    console.log(userId, generateOtpCode, currentTime.getTime() + 10 * 60 * 1000)
     const record = await db.query("Insert into OTP (otpID, userID, code, validUntil) values (gen_random_uuid(), $1, $2, $3)",
         [
             userId,
-            "123456",
+            generateOtpCode(),
             Math.round(currentTime.getTime() / 1000 + keepAliveMin * 60) // storing it in seconds for some reason
         ])
 
+    const user = await getUserById(userId);
+    if (!user){
+        return;
+    }
 
+    sendUserOTP(user.email, "123456");
     console.log("SET OTP IN DATBASE for " + userId)
 
 }
@@ -55,7 +62,7 @@ export async function verifyOTP(userID: UUID, code: string): Promise<Boolean | n
     const storedValidUntil = row['validuntil'];
 
     const time = new Date();
-    if (Number(storedValidUntil) <= Math.round(time.getTime()/1000)) {
+    if (Number(storedValidUntil) <= Math.round(time.getTime() / 1000)) {
         return null; // invalid
     }
 
