@@ -1,10 +1,32 @@
 <script lang="ts">
+	import { Button } from '$lib/components/ui/button';
 	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
+
+	// when the page loads focus on the input element to not require a click
+	let inputElement: HTMLElement | null = null;
+	onMount(() => {
+		inputElement?.focus();
+	});
 </script>
 
-<div class="">
-	<form method="POST" use:enhance action="?/verifyEmail">
-        <input class="bg-red-200" type="text" name="OTP">
-        <button>Submit OTP</button>
-    </form>
+<div class="flex h-[100vh] flex-col justify-around">
+	<div class="mx-auto w-fit flex-col justify-center rounded-md border-2 p-8">
+		<div class="flex flex-col gap-2">
+			<div class="text-xl font-bold">Enter OTP from your email</div>
+			<div class="max-w-prose">
+				If you did not receive a code press <a class="text-blue-300 italic" href="/">(Here)</a> to resend
+				it
+			</div>
+			<form class="flex flex-row gap-2 pt-2" method="POST" use:enhance action="?/verifyEmail">
+				<input
+					bind:this={inputElement}
+					class="rounded-md border-2 p-1.5 outline-none"
+					type="text"
+					name="OTP"
+				/>
+				<Button class="p-5">Submit</Button>
+			</form>
+		</div>
+	</div>
 </div>

@@ -1,13 +1,13 @@
-import { db } from "./database";
-import { sendEmail } from "./emails";
-import type { UUID } from "./sessions";
-import { getUserById } from "./users";
+import { db } from './database';
+import { sendEmail } from './emails';
+import type { UUID } from './sessions';
+import { getUserById } from './users';
 
 interface Otp {
-    otpId: UUID,
-    userId: UUID,
-    code: string,
-    validUntil: Date,
+    otpId: UUID;
+    userId: UUID;
+    code: string;
+    validUntil: Date;
 }
 
 const create = `
@@ -17,41 +17,47 @@ const create = `
     code varchar(6) NOT NULL,
     validUntil INTEGER NOT NULL
   );
-`
+`;
 
-function generateOtpCode(): string {
-    // TODO
-    return "123456"
+export function generateOtpCode(): string {
+    const chars = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let generated = "";
+
+    while (generated.length < 6) {
+        generated = generated + chars.at(Math.round(Math.random() * chars.length));
+    }
+
+    return generated
 }
 
 export async function sendUserOTP(email: string, code: string) {
-    console.log("sending OTP code " + code + " to " + email);
     await sendEmail(email, code);
 }
 
 export async function createAndSetOTP(userId: UUID, keepAliveMin: number) {
-
     const currentTime = new Date();
 
-    const record = await db.query("Insert into OTP (otpID, userID, code, validUntil) values (gen_random_uuid(), $1, $2, $3)",
+    const otp = generateOtpCode();
+
+   await db.query(
+        'Insert into OTP (otpID, userID, code, validUntil) values (gen_random_uuid(), $1, $2, $3)',
         [
             userId,
-            generateOtpCode(),
+            otp,
             Math.round(currentTime.getTime() / 1000 + keepAliveMin * 60) // storing it in seconds for some reason
-        ])
+        ]
+    );
 
     const user = await getUserById(userId);
-    if (!user){
+    if (!user) {
         return;
     }
 
-    sendUserOTP(user.email, "123456");
-    console.log("SET OTP IN DATBASE for " + userId)
-
+    sendUserOTP(user.email, otp);
 }
 
 export async function verifyOTP(userID: UUID, code: string): Promise<Boolean | null> {
-    const stored = await db.query("Select code, validUntil from OTP where userID = $1", [userID]);
+    const stored = await db.query('Select code, validUntil from OTP where userID = $1', [userID]);
     if (stored.rowCount != 1) {
         return null;
     }

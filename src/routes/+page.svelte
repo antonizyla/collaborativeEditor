@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index';
 
-    let {data} = $props();
+	let { data } = $props();
 </script>
 
 <div class="flex h-[100vh] flex-col justify-center">

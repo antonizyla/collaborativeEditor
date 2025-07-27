@@ -36,8 +36,7 @@
 						clearTimeout(tabs.tabClickTimer);
 						console.log('double click');
 					}}
-				>
-				</BindableButton>
+				></BindableButton>
 			</div>
 			<Button
 				onclick={() => {
@@ -57,7 +56,7 @@
 				if (tabs.open) {
 					tabs.open.content = tabs.currentTextBuffer;
 					tabs.saveEditorContents(tabs.open);
-					tabs.getEditors().forEach(editor => {
+					tabs.getEditors().forEach((editor) => {
 						tabs.saveTabNameEdit(editor.identifier);
 					});
 				}
