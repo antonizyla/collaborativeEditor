@@ -1,10 +1,22 @@
 import { createAndSetOTP } from '$lib/server/otp';
-import { createSession } from '$lib/server/sessions';
-import { createUser, type User } from '$lib/server/users';
+import { createSession, setSessionTokenCookie, validateSessionToken } from '$lib/server/sessions';
+import { createUser, getUserByEmail, getUserById, type User } from '$lib/server/users';
 import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 
 export function load(event: RequestEvent) {
-	console.log('Signup Page Load');
+    const user = event.locals.user;
+    const session = event.locals.session;
+
+    console.log("/signup load function")
+
+    if (!user){
+        return;
+    }
+
+    if (!user.verified){
+        console.log("xyz: sending to auth with new otp");
+        throw redirect(307, "/auth")
+    }
 }
 
 export const actions = {
@@ -19,26 +31,30 @@ export const actions = {
 				email: ''
 			});
 		}
+    
+        const user = await createUser(email);
+        if (!user?.userId){
+            return fail(400, {
+                message: "Error Creating User Account",
+                email: email
+            });
+        }
 
-		// TODO VERIFY EMAIL INPUT e.g. @ and .domain
+        const session = await createSession(user.userId);
+        if (!session){
+            return fail(400,{
+                message: "Failed to create user session",
+                email: email
+            });
+        }
 
-		// create a user account for this email
-		const user = await createUser(email);
-		if (!user) {
-			// return if cannot create it
-			return fail(400, {
-				message: 'Unable to create account with this email address',
-				email: email
-			});
-		}
+        const time = new Date()
+        const expires = new Date(time.getTime() + 1000*24*60)
 
-		await createAndSetOTP(user.userId, 10);
+        setSessionTokenCookie(event, session.token, expires);
 
-		event.cookies.set('userId', user.userId, {
-			path: '/',
-			maxAge: 60 * 60 * 24 // 1 day
-		});
+        console.log("Sending OTP to "+ user.email + " as they do not have a session")
 
-		throw redirect(300, '/auth');
+        redirect(307, "/auth")
 	}
 };

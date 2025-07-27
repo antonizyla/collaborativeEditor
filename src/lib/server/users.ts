@@ -72,9 +72,9 @@ export async function getUserByEmail(email: string): Promise<User | null> {
 		return null;
 	}
 	const user: User = {
-		userId: res.rows[0][0],
-		email: res.rows[0][1],
-		verified: res.rows[0][2]
+		userId: res.rows[0]['userid'],
+		email: res.rows[0]['email'],
+		verified: res.rows[0]['verified']
 	};
 	return user;
 }
