@@ -12,14 +12,14 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "eslint . && prettier --check .",
 		"format": "prettier --write .",
-        "test": "vitest"
+		"test": "vitest"
 	},
 	"devDependencies": {
 		"@eslint/compat": "^1.2.5",
 		"@eslint/js": "^9.18.0",
 		"@fontsource/fira-mono": "^5.0.0",
 		"@internationalized/date": "^3.8.2",
-		"@lucide/svelte": "^0.525.0",
+		"@lucide/svelte": "^0.515.0",
 		"@neoconfetti/svelte": "^2.0.0",
 		"@sveltejs/adapter-auto": "^6.0.0",
 		"@sveltejs/kit": "^2.22.0",

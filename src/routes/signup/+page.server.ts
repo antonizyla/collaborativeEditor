@@ -4,19 +4,16 @@ import { createUser, getUserByEmail, getUserById, type User } from '$lib/server/
 import { fail, redirect, type RequestEvent } from '@sveltejs/kit';
 
 export function load(event: RequestEvent) {
-    const user = event.locals.user;
-    const session = event.locals.session;
+	const user = event.locals.user;
+	const session = event.locals.session;
 
-    console.log("/signup load function")
+	if (!user) {
+		return;
+	}
 
-    if (!user){
-        return;
-    }
-
-    if (!user.verified){
-        console.log("xyz: sending to auth with new otp");
-        throw redirect(307, "/auth")
-    }
+	if (!user.verified) {
+		throw redirect(307, '/auth');
+	}
 }
 
 export const actions = {
@@ -31,30 +28,30 @@ export const actions = {
 				email: ''
 			});
 		}
-    
-        const user = await createUser(email);
-        if (!user?.userId){
-            return fail(400, {
-                message: "Error Creating User Account",
-                email: email
-            });
-        }
 
-        const session = await createSession(user.userId);
-        if (!session){
-            return fail(400,{
-                message: "Failed to create user session",
-                email: email
-            });
-        }
+		const user = await createUser(email);
+		if (!user?.userId) {
+			return fail(400, {
+				message: 'Error Creating User Account',
+				email: email
+			});
+		}
 
-        const time = new Date()
-        const expires = new Date(time.getTime() + 1000*24*60)
+		const session = await createSession(user.userId);
+		if (!session) {
+			return fail(400, {
+				message: 'Failed to create user session',
+				email: email
+			});
+		}
 
-        setSessionTokenCookie(event, session.token, expires);
+		const time = new Date();
+		const expires = new Date(time.getTime() + 1000 * 24 * 60);
 
-        console.log("Sending OTP to "+ user.email + " as they do not have a session")
+		setSessionTokenCookie(event, session.token, expires);
 
-        redirect(307, "/auth")
+		await createAndSetOTP(user.userId, 10);
+
+		redirect(307, '/auth');
 	}
 };

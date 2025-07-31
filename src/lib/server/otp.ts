@@ -53,7 +53,8 @@ export async function createAndSetOTP(userId: UUID, keepAliveMin: number) {
 		return;
 	}
 
-	sendUserOTP(user.email, otp);
+	await sendUserOTP(user.email, otp);
+	console.log(`Sending otp to ${user.email} with value: ${otp}`);
 }
 
 export async function verifyOTP(userID: UUID, code: string): Promise<Boolean | null> {
@@ -76,4 +77,13 @@ export async function verifyOTP(userID: UUID, code: string): Promise<Boolean | n
 		return true;
 	}
 	return false;
+}
+
+export async function getOTPValidUntilDate(userId: UUID): Promise<Date | null> {
+	const store = await db.query('select validuntil from otp where userid=$1', [userId]);
+	if (store.rowCount !== 1) {
+		return null;
+	}
+	const date = new Date(store.rows[0]['validuntil'] * 1000);
+	return date;
 }

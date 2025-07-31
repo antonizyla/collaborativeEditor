@@ -5,14 +5,10 @@ import { createAndSetOTP, sendUserOTP } from '$lib/server/otp';
 import { validateSessionToken } from '$lib/server/sessions';
 
 export async function load(event: RequestEvent) {
+	const user: User | null = event.locals.user;
+	const session: Session | null = event.locals.session;
 
-    const user: User | null = event.locals.user;
-    const session: Session | null = event.locals.session;
-
-    console.log('/editor load function');
-
-    if (!user || !session) {
-        throw redirect(307, "/signup");
-    }
-
+	if (!user || !session) {
+		throw redirect(307, '/signup');
+	}
 }

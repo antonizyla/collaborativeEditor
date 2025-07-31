@@ -1,7 +1,6 @@
 <script lang="ts">
-	import EditorSidebar from './EditorSidebar.svelte';
-	import Editor from './Editor.svelte';
-
+	import Editor from '$lib/components/editor/Editor.svelte';
+	import EditorSidebar from '$lib/components/editor/EditorSidebar.svelte';
 	import { storageEngine } from '$lib/storage.svelte';
 
 	let store = storageEngine;
