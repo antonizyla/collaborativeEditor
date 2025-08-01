@@ -87,3 +87,7 @@ export async function getOTPValidUntilDate(userId: UUID): Promise<Date | null> {
 	const date = new Date(store.rows[0]['validuntil'] * 1000);
 	return date;
 }
+
+export async function deleteOTPEntries(userId: UUID): Promise<void> {
+	await db.query('delete from otp where userid=$1', [userId]);
+}

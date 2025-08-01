@@ -93,8 +93,21 @@ export async function validateSessionToken(
 		return { session: null, user: null };
 	}
 
-	const expected = await hashSecret(sessionId, session.secret);
-	console.log('TODO IMPLEMENT CHECKING SIGNATURE');
+	const expected = Buffer.from(await hashSecret(sessionId, session.secret)).toString('base64');
+	// compare the hash and expected
+	if (expected.length != signature.length) {
+		return { session: null, user: null };
+	}
+	let same = true;
+	for (let i = 0; i < expected.length; i++) {
+		if (expected[i] !== signature[i]) {
+			same = false;
+		}
+	}
+	if (!same) {
+		return { session: null, user: null };
+	}
+
 
 	// update the session in with current time
 	const time = new Date();

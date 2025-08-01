@@ -18,13 +18,9 @@
 			<div class="text-xl font-bold">Enter OTP from your email</div>
 			<div class="text-md text-gray-500">Email Sent to: {data.user.email}</div>
 			<div class="flex max-w-prose flex-row items-center justify-between">
-				<Button
-					size="sm"
-					variant="outline"
-					onclick={async () => {
-						console.log('hello');
-					}}>Resend Code</Button
-				>
+				<form action="?/resend" method="POST">
+					<Button type="submit" size="sm" variant="outline">Resend Code</Button>
+				</form>
 				<div class="">
 					Valid until: {data.otpValidUntil?.getHours() ?? 'XX'}:{data.otpValidUntil?.getMinutes() ??
 						'XX'}
@@ -37,7 +33,7 @@
 					type="text"
 					name="OTP"
 				/>
-				<Button class="p-5">Submit</Button>
+				<Button type="submit" class="p-5">Submit</Button>
 			</form>
 		</div>
 	</div>

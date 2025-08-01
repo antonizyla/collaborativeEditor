@@ -25,8 +25,8 @@
 						if (tabs.editorElement) {
 							tabs.editorElement.focus();
 						}
-					}}
-				>{tabs.editableTabNames[tab.identifier]}</Button>
+					}}>{tabs.editableTabNames[tab.identifier]}</Button
+				>
 			</div>
 			<Button
 				onclick={() => {

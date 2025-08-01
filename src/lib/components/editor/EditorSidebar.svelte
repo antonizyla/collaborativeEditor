@@ -7,6 +7,7 @@
 	let { store, loading } = $props();
 
 	import { tabs } from '$lib/editors.svelte';
+	import DarkModeToggle from '../DarkModeToggle.svelte';
 </script>
 
 <!--Sidebar-->
@@ -19,10 +20,11 @@
 		</div>
 	{:else}
 		<div class="m-2 flex flex-row items-center justify-between gap-2">
+			<div class=""><DarkModeToggle /></div>
 			<div class="font-bold">Filesystem</div>
 			<Button
-				onclick={() => {
-					store.createFile('Random', 'user');
+				onclick={async () => {
+					await store.createFile('Random');
 				}}
 				size="sm"
 			>

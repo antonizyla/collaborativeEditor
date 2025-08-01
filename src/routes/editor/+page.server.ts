@@ -11,4 +11,15 @@ export async function load(event: RequestEvent) {
 	if (!user || !session) {
 		throw redirect(307, '/signup');
 	}
+
+	const data = await event.fetch(`/api/documents`, {
+		method: 'GET',
+		headers: { 'Content-Type': 'application/json' },
+		credentials: 'include'
+	});
+	if (data.status != 200) {
+		alert('Error communicating with server');
+	}
+	const files = await data.json();
+	return Object.fromEntries(files.map((file) => [file.identifier, file]));
 }

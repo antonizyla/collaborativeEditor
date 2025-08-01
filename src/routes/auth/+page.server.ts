@@ -1,7 +1,13 @@
 import { getUserById, verifyUser, type User } from '$lib/server/users';
 import type { RequestEvent } from '@sveltejs/kit';
 import { fail, redirect } from '@sveltejs/kit';
-import { verifyOTP, sendUserOTP, getOTPValidUntilDate } from '$lib/server/otp';
+import {
+	verifyOTP,
+	sendUserOTP,
+	getOTPValidUntilDate,
+	createAndSetOTP,
+	deleteOTPEntries
+} from '$lib/server/otp';
 import { createSession, validateSessionToken, type Session } from '$lib/server/sessions';
 import { jsonifySessionWithToken, sessionToJson } from '$lib/server/utils';
 
@@ -24,7 +30,7 @@ export async function load(event: RequestEvent) {
 
 	const data: ret = {
 		user: user,
-		optValidUntil: await getOTPValidUntilDate(user.userId)
+		otpValidUntil: await getOTPValidUntilDate(user.userId)
 	};
 	return data;
 }
@@ -47,5 +53,15 @@ export const actions = {
 		}
 
 		redirect(307, '/editor');
+	},
+	resend: async (event: RequestEvent) => {
+		console.log('hit resend');
+
+		const user: User | null = event.locals.user;
+		if (!user) {
+			return;
+		}
+		await deleteOTPEntries(user.userId);
+		await createAndSetOTP(user.userId, 10);
 	}
 };
