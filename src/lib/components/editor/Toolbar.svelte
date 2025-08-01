@@ -12,32 +12,21 @@
 	<div class="flex flex-row items-end">
 		{#each tabs.getEditors() as tab, _ (tab.identifier)}
 			<div class="">
-				<BindableButton
+				<Button
 					class="flex flex-row gap-5 pr-4"
 					spellcheck={false}
 					variant={tabs.getCurrentlyOpenFile() === tab ? 'default' : 'outline'}
 					size={tabs.getCurrentlyOpenFile() === tab ? 'default' : 'sm'}
-					bind:innerHTML={tabs.editableTabNames[tab.identifier]}
-					contenteditable={true}
 					onclick={() => {
-						console.log('single click');
-						clearTimeout(tabs.tabClickTimer);
-						tabs.tabClickTimer = setTimeout(() => {
-							if (tabs.open) {
-								tabs.saveEditorContents(tabs.open);
-							}
-							tabs.openEditor(tab.identifier);
-							if (tabs.editorElement) {
-								tabs.editorElement.focus();
-							}
-						}, 100);
-					}}
-					ondblclick={() => {
-						clearTimeout(tabs.tabClickTimer);
-						console.log('double click');
-					}}
+						if (tabs.open) {
+							tabs.saveEditorContents(tabs.open);
+						}
+						tabs.openEditor(tab.identifier);
+						if (tabs.editorElement) {
+							tabs.editorElement.focus();
+						}
+					}}>{tabs.editableTabNames[tab.identifier]}</Button
 				>
-				</BindableButton>
 			</div>
 			<Button
 				onclick={() => {
@@ -57,7 +46,7 @@
 				if (tabs.open) {
 					tabs.open.content = tabs.currentTextBuffer;
 					tabs.saveEditorContents(tabs.open);
-					tabs.getEditors().forEach(editor => {
+					tabs.getEditors().forEach((editor) => {
 						tabs.saveTabNameEdit(editor.identifier);
 					});
 				}

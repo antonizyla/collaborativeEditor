@@ -74,7 +74,7 @@ class Editors {
 
 	getEditableTabName(fileIdentifier: string): string {
 		if (!(fileIdentifier in this.editableTabNames)) {
-			const file = this.editors.find(e => e.identifier === fileIdentifier);
+			const file = this.editors.find((e) => e.identifier === fileIdentifier);
 			this.editableTabNames[fileIdentifier] = file ? file.filename : '';
 		}
 		return this.editableTabNames[fileIdentifier];
@@ -85,7 +85,7 @@ class Editors {
 	}
 
 	saveTabNameEdit(fileIdentifier: string) {
-		const file = this.editors.find(e => e.identifier === fileIdentifier);
+		const file = this.editors.find((e) => e.identifier === fileIdentifier);
 		if (file && this.editableTabNames[fileIdentifier]) {
 			const newName = this.editableTabNames[fileIdentifier];
 			file.filename = newName;

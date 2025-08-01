@@ -5,9 +5,7 @@ import Root, {
 	buttonVariants
 } from './button.svelte';
 
-import BindableRoot, {
-	type HtmlButtonProps
-} from './bindableButton.svelte';
+import BindableRoot, { type HtmlButtonProps } from './bindableButton.svelte';
 
 export {
 	Root,

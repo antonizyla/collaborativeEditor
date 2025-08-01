@@ -33,7 +33,7 @@
 		<div class="h-screen">
 			{#if tabs.getCurrentlyOpenFile()}
 				<div
-					class="font-lg mr-2 min-h-full border-1 bg-gray-100 p-18 px-18 caret-foreground focus:outline-none"
+					class="font-lg mr-2 min-h-full border-1 bg-gray-100 p-18 px-18 text-gray-900 caret-foreground focus:outline-none"
 					bind:this={tabs.editorElement}
 					bind:innerHTML={tabs.currentTextBuffer}
 					contenteditable

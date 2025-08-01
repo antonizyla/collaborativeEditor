@@ -1,4 +1,4 @@
-export type file = {
+export interface file {
 	identifier: string;
 	filename: string;
 	author: string;
@@ -6,8 +6,7 @@ export type file = {
 	created: number;
 	edited: number;
 	deleted: boolean;
-	saved: boolean;
-};
+}
 
 class Storage {
 	displayed: file[];
@@ -22,22 +21,47 @@ class Storage {
 				.map((e) => e[1])
 				.filter((e) => e.deleted == false)
 		);
+		this.currentUser = null;
 	}
 
-	createFile(filename: string, author: string) {
+	async createFile(filename: string) {
 		let id = crypto.randomUUID();
-		let file: file = {
-			identifier: id,
-			filename: filename,
-			author: author,
-			content: '',
-			created: Date.now(),
-			edited: Date.now(),
-			deleted: false,
-			saved: true
-		};
+		let file = null;
+		if (filename === '') {
+			file = {
+				identifier: id,
+				filename: `Untitled-${this.next_number}`,
+				author: this.currentUser,
+				content: '',
+				created: Date.now(),
+				edited: Date.now(),
+				deleted: false
+			};
+			this.next_number += 1;
+		} else {
+			file = {
+				identifier: id,
+				filename: filename,
+				author: this.currentUser,
+				content: '',
+				created: Date.now(),
+				edited: Date.now(),
+				deleted: false
+			};
+		}
 		this.files[file.identifier] = file;
 		this.saveLocal();
+
+		// save it to the database
+		const data = await fetch(`/api/document`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			body: JSON.stringify(file)
+		});
+		if (data.status != 200) {
+			alert('Error communicating with server');
+		}
 	}
 
 	listFiles(): file[] {
@@ -66,13 +90,25 @@ class Storage {
 		return this.files[fileId];
 	}
 
-	saveLocal() {
+	async saveLocal() {
 		const Json_state = JSON.stringify({
 			displayed: this.displayed,
 			files: this.files,
 			next_number: this.next_number
 		});
 		localStorage.setItem('files', Json_state);
+
+		// update all documents
+		console.log('[Storage Engine] POSTING CHANGES TO DB');
+		const data = await fetch(`/api/documents`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			body: JSON.stringify(Object.values(this.files))
+		});
+		if (data.status != 200) {
+			alert('Error communicating with server');
+		}
 	}
 
 	retrieveLocal() {
