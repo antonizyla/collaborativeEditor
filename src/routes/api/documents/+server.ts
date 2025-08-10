@@ -1,7 +1,4 @@
-import {
-	getAllDocuments,
-	updateDocuments
-} from '$lib/server/document';
+import { getAllDocuments, updateDocuments } from '$lib/server/document';
 import { validateSessionToken } from '$lib/server/sessions';
 import { error } from '@sveltejs/kit';
 
@@ -31,6 +28,7 @@ export async function GET(event) {
 
 export async function POST(event) {
 	const token = event.cookies.get('session');
+	console.log(token);
 	if (!token) {
 		throw error(401, {
 			message: 'Unathorized'

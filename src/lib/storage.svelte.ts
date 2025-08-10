@@ -1,3 +1,6 @@
+import type { UUID } from "./server/sessions";
+import { emitState } from "./socketClient";
+
 export interface file {
 	identifier: string;
 	filename: string;
@@ -12,6 +15,7 @@ class Storage {
 	displayed: file[];
 	files: Record<string, file>;
 	next_number: number;
+	currentUser: UUID;
 
 	constructor() {
 		this.files = $state({});
@@ -21,7 +25,7 @@ class Storage {
 				.map((e) => e[1])
 				.filter((e) => e.deleted == false)
 		);
-		this.currentUser = null;
+		this.currentUser = "";
 	}
 
 	async createFile(filename: string) {
@@ -96,6 +100,8 @@ class Storage {
 			files: this.files,
 			next_number: this.next_number
 		});
+		this.emit();	
+	/*	
 		localStorage.setItem('files', Json_state);
 
 		// update all documents
@@ -109,6 +115,7 @@ class Storage {
 		if (data.status != 200) {
 			alert('Error communicating with server');
 		}
+			*/
 	}
 
 	retrieveLocal() {
@@ -122,6 +129,11 @@ class Storage {
 		this.files = stored.files;
 		this.next_number = stored.next_number;
 	}
+
+	emit(){
+		emitState(this.files, this.currentUser);
+	}
+
 }
 
 export const storageEngine = new Storage();
