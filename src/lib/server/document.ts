@@ -99,6 +99,8 @@ export async function getAllDocuments(userID: UUID): Promise<file[] | null> {
 	});
 }
 
+// this should be batched however the project
+// is too small to worry about
 export async function updateDocuments(files: file[]): Promise<file[] | null> {
 	let updated: file[] = [];
 	for (let i = 0; i < files.length; i++) {

@@ -3,6 +3,7 @@ import type { ViteDevServer } from 'vite';
 import { getAllDocuments, updateDocuments } from './document';
 import { validateSessionToken, type UUID } from './sessions';
 import type { file } from '$lib/storage.svelte';
+import { mergeFiles } from './automerging';
 
 // use this to be the "source of truth" for each document edited by any user
 let serverState: ServerStore = {
@@ -42,7 +43,15 @@ export const webSocketServer = {
             console.log('[Server] Loading in User data from database into memory')
             serverState = await loadInUserData(eventName, serverState);
           }
-          serverState.rawFiles[edited.identifier] = edited;
+          console.log("EDITED: " + Object.values(edited));
+          console.log("STORED: " + Object.values(serverState.rawFiles[edited.identifier]));
+          if (typeof serverState.rawFiles[edited.identifier] === 'undefined'){
+            // create a new file
+            serverState.rawFiles[edited.identifier] = edited;
+          }else{
+            serverState.rawFiles[edited.identifier] = mergeFiles(edited, serverState.rawFiles[edited.identifier])
+          }
+          console.log("MERGED: " + Object.values(serverState.rawFiles[edited.identifier]));
           socket.emit(eventName, JSON.stringify(getAllDocumentsLocally(eventName, serverState)));
         }
       });
