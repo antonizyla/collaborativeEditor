@@ -1,6 +1,14 @@
 import { Server } from 'socket.io';
 import type { ViteDevServer } from 'vite';
-import type { UUID } from './sessions';
+import { getAllDocuments, updateDocuments } from './document';
+import { validateSessionToken, type UUID } from './sessions';
+import type { file } from '$lib/storage.svelte';
+
+// use this to be the "source of truth" for each document edited by any user
+let serverState: ServerStore = {
+  userStores: {},
+  rawFiles: {}
+};
 
 export const webSocketServer = {
   name: 'websocket',
@@ -16,32 +24,29 @@ export const webSocketServer = {
       }
     });
 
-    let connectedUsers: UUID[] = [];
-
     io.on('connection', (socket) => {
-      console.log("[WS Server] Connected ")
 
+      socket.on('disconnect', async (reason) => {
+        console.log("[WS Server] Client Disconnected: ", reason);
+        // save all of the files to the database
+        const files = Object.values(serverState.rawFiles);
+        await updateDocuments(files);
+        console.log("[WS Server] Updated Database State");
+      })
+
+      // eventName is the userId
       socket.onAny(async (eventName, payload) => {
-        console.log("[WS Server] Received Data from " + eventName)
-        // synchronise the data with the database
-        const cookies = parseCookies(socket.request.headers.cookie ?? "")
-        const data = await fetch(`${origin}/api/documents`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'applications/json', 
-            'Cookie': `session=${cookies.session}`
-          },
-          credentials: 'include',
-          body: JSON.stringify(Object.values(JSON.parse(payload)))
-        });
-        // send the merged payload back to the browser
-        console.log("[WS Server] Emitting data back to client")
-        socket.emit(eventName, payload);
+        const edited = JSON.parse(payload)
+        if (edited.identifier) {
+          if (typeof serverState.userStores[eventName] === 'undefined') {
+            console.log('[Server] Loading in User data from database into memory')
+            serverState = await loadInUserData(eventName, serverState);
+          }
+          serverState.rawFiles[edited.identifier] = edited;
+          socket.emit(eventName, JSON.stringify(getAllDocumentsLocally(eventName, serverState)));
+        }
       });
-
     });
-
-    console.log("[SOCKETS] SocketIO Server Injected");
   }
 };
 
@@ -57,4 +62,51 @@ function parseCookies(cookieHeader: string) {
   });
 
   return cookies;
+}
+
+async function saveStateApiCall(stringPayload: string, socket, origin: string) {
+  const payload = JSON.stringify(Object.values(JSON.parse(stringPayload ?? "{}")));
+  const cookies = parseCookies(socket.request.headers.cookie ?? "")
+  const data = await fetch(`${origin}/api/documents`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'applications/json',
+      'Cookie': `session=${cookies.session}`
+    },
+    credentials: 'include',
+    body: payload
+  });
+}
+
+type ServerStore = {
+  userStores: Record<string, string[]>;
+  rawFiles: Record<string, file>;
+};
+
+// take in user ID and object representing our current server state
+// append the user with data from the database
+async function loadInUserData(userId: UUID, store: ServerStore) {
+  const stored = await getAllDocuments(userId);
+  if (!stored) {
+    return store;
+  }
+  // modify to {fileId: file, ... } rather than [file, file,...]
+  const formatted: Record<string, file> = Object.fromEntries(stored.map((f) => [f.identifier, f]));
+  const fileNames: string[] = Object.keys(formatted);
+  const updated: ServerStore = {
+    rawFiles: {
+      ...store.rawFiles,
+      ...formatted
+    },
+    userStores: {
+      ...store.userStores,
+      [userId]: fileNames
+    }
+  }
+  return updated;
+}
+
+function getAllDocumentsLocally(userId: UUID, store: ServerStore) {
+  const fileIds = store.userStores[userId] ?? [];
+  return fileIds.map(id => store.rawFiles[id]).filter(Boolean);
 }

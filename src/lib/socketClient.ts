@@ -16,7 +16,7 @@ export function sendMessage(message: string, identifier: string) {
 }
 
 // emit on the username
-export function emitState(state, userId: UUID, sessionToken) {
+export function emitState(state, userId: UUID) {
   socket.on("connection_error", (err) => {
     console.log("[WS Client] Error Connecting", err)
   });
@@ -29,7 +29,6 @@ export async function listen(userId: UUID) {
     console.log(
       "[WS Client] Listened to " + payload
     );
-    console.log(JSON.parse(payload));
-    storageEngine.files = JSON.parse(payload);
+    storageEngine.files = Object.fromEntries(JSON.parse(payload).map((file) => [file.identifier, file]))
   })
 }

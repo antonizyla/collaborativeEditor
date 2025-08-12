@@ -41,5 +41,3 @@
 	<EditorSidebar {store} {loading}></EditorSidebar>
 	<Editor {loading}></Editor>
 </div>
-
-<Button onclick={()=>{emitState(storageEngine.files, storageEngine.currentUser)}}>Send thsi</Button>
