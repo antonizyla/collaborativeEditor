@@ -4,6 +4,7 @@ import { getAllDocuments, updateDocuments } from './document';
 import { validateSessionToken, type UUID } from './sessions';
 import type { file } from '$lib/storage.svelte';
 import { mergeFiles } from './automerging';
+import { json } from '@sveltejs/kit';
 
 // use this to be the "source of truth" for each document edited by any user
 let serverState: ServerStore = {
@@ -24,9 +25,8 @@ export const webSocketServer = {
         credentials: true
       }
     });
-
+    /*
     io.on('connection', (socket) => {
-
       socket.on('disconnect', async (reason) => {
         console.log("[WS Server] Client Disconnected: ", reason);
         // save all of the files to the database
@@ -37,25 +37,68 @@ export const webSocketServer = {
 
       // eventName is the userId
       socket.onAny(async (eventName, payload) => {
+        console.log(eventName);
         const edited = JSON.parse(payload)
         if (edited.identifier) {
           if (typeof serverState.userStores[eventName] === 'undefined') {
             console.log('[Server] Loading in User data from database into memory')
             serverState = await loadInUserData(eventName, serverState);
           }
-          console.log("EDITED: " + Object.values(edited));
-          console.log("STORED: " + Object.values(serverState.rawFiles[edited.identifier]));
+          //console.log("EDITED: " + Object.values(edited));
+          //console.log("STORED: " + Object.values(serverState.rawFiles[edited.identifier]));
           if (typeof serverState.rawFiles[edited.identifier] === 'undefined'){
             // create a new file
             serverState.rawFiles[edited.identifier] = edited;
           }else{
             serverState.rawFiles[edited.identifier] = mergeFiles(edited, serverState.rawFiles[edited.identifier])
           }
-          console.log("MERGED: " + Object.values(serverState.rawFiles[edited.identifier]));
-          socket.emit(eventName, JSON.stringify(getAllDocumentsLocally(eventName, serverState)));
+          //console.log("MERGED: " + Object.values(serverState.rawFiles[edited.identifier]));
+          io.in(eventName).emit(eventName, JSON.stringify(getAllDocumentsLocally(eventName, serverState)));
         }
       });
     });
+  */
+
+    io.on('connection', (socket) => {
+
+      // Client joins their user-specific room on connection
+      socket.on('join', (userId) => {
+        console.log(`Socket ${socket.id} joining room for user ${userId}`);
+        socket.join(userId);
+      });
+
+      socket.on('disconnect', async (reason) => {
+        console.log('Client disconnected:', socket.id, reason);
+        // save all of the files to the database
+        const files = Object.values(serverState.rawFiles);
+        await updateDocuments(files);
+        console.log("[WS Server] Updated Database State");
+      });
+
+      // Handle document updates
+      socket.on('document-update', async (payload) => {
+        //console.log(JSON.parse(payload));
+        const { userId, state } = JSON.parse(payload);
+        let edited = state;
+        if (edited.identifier) {
+          if (typeof serverState.userStores[userId] === 'undefined') {
+            console.log('[Server] Loading in User data from database into memory');
+            serverState = await loadInUserData(userId, serverState);
+          }
+
+          if (typeof serverState.rawFiles[edited.identifier] === 'undefined') {
+            // create a new file
+            serverState.rawFiles[edited.identifier] = edited;
+          } else {
+            serverState.rawFiles[edited.identifier] = mergeFiles(serverState.rawFiles[edited.identifier], edited);
+          }
+          // Broadcast updates to all clients in the user's room
+          io.to(userId).emit('document-update', JSON.stringify(getAllDocumentsLocally(userId, serverState)));
+        }
+      });
+    });
+
+
   }
 };
 

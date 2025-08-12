@@ -4,7 +4,7 @@
 	import { storageEngine } from '$lib/storage.svelte';
 	import { onMount } from 'svelte';
 	import type { PageProps } from '../$types';
-	import { emitState, listen as wsListenFromServer } from '$lib/socketClient';
+	import { emitState, wsJoinUserRoom, listen as wsListenFromServer } from '$lib/socketClient';
 	import {Button} from '$lib/components/ui/button/index';
 
 	// this is to send the data to the client in lieu of crdt
@@ -18,7 +18,7 @@
 
 	onMount(() => {
 		//storageEngine.saveLocal();
-		
+		wsJoinUserRoom(storageEngine.currentUser);;	
 		// this is responsible for setting the browser's state
 		// to that broadcast from the server
 		emitState(storageEngine.files, storageEngine.currentUser);

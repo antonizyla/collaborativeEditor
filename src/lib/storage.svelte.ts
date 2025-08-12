@@ -82,19 +82,16 @@ class Storage {
 	changeFileName(file: file, newName: string) {
 		this.files[file.identifier].filename = newName;
 		this.emitFile(this.files[file.identifier]);
-		//this.saveLocal();
 	}
 
 	updateContents(file: file, newContent: string) {
 		this.files[file.identifier].content = newContent;
 		this.emitFile(this.files[file.identifier]);
-		//this.saveLocal();
 	}
 
 	updateFileName(file: file, newName: string) {
 		this.files[file.identifier].filename = newName;
 		this.emitFile(this.files[file.identifier]);
-		//this.saveLocal();
 	}
 
 	getFile(fileId: string): file {
