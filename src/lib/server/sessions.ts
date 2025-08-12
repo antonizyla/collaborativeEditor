@@ -108,7 +108,6 @@ export async function validateSessionToken(
 		return { session: null, user: null };
 	}
 
-
 	// update the session in with current time
 	const time = new Date();
 	if (session.lastVerifiedAt.getTime() + 120 * 1000 * 60 >= time.getTime()) {

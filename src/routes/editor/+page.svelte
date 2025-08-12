@@ -4,22 +4,33 @@
 	import { storageEngine } from '$lib/storage.svelte';
 	import { onMount } from 'svelte';
 	import type { PageProps } from '../$types';
+	import { emitState, wsJoinUserRoom, listen as wsListenFromServer } from '$lib/socketClient';
+	import {Button} from '$lib/components/ui/button/index';
 
 	// this is to send the data to the client in lieu of crdt
 	// allow for both local and server state to sync automatically
 	// Server is our single source of truth but if refresh or lose connection
 	// without refresh then they can save to local and salvage it
 	let { data }: PageProps = $props();
-	storageEngine.files = data;
+
+	storageEngine.files = data.files;
+	storageEngine.currentUser = data.currentUser;
+
 	onMount(() => {
-		storageEngine.saveLocal();
+		//storageEngine.saveLocal();
+		wsJoinUserRoom(storageEngine.currentUser);;	
+		// this is responsible for setting the browser's state
+		// to that broadcast from the server
+		emitState(storageEngine.files, storageEngine.currentUser);
+		// parse back in the emmitted state - will show errors
+		wsListenFromServer(storageEngine.currentUser);
 	});
 
 	let store = storageEngine;
 
 	let local = true;
 	if (typeof localStorage !== 'undefined') {
-		store.retrieveLocal();
+		//store.retrieveLocal();
 		local = false;
 	}
 

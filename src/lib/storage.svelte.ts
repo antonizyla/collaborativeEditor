@@ -1,3 +1,6 @@
+import type { UUID } from "./server/sessions";
+import { emitState } from "./socketClient";
+
 export interface file {
 	identifier: string;
 	filename: string;
@@ -12,6 +15,7 @@ class Storage {
 	displayed: file[];
 	files: Record<string, file>;
 	next_number: number;
+	currentUser: UUID;
 
 	constructor() {
 		this.files = $state({});
@@ -21,7 +25,7 @@ class Storage {
 				.map((e) => e[1])
 				.filter((e) => e.deleted == false)
 		);
-		this.currentUser = null;
+		this.currentUser = "";
 	}
 
 	async createFile(filename: string) {
@@ -50,7 +54,8 @@ class Storage {
 			};
 		}
 		this.files[file.identifier] = file;
-		this.saveLocal();
+		this.emitFile(this.files[file.identifier]);
+		//this.saveLocal();
 
 		// save it to the database
 		const data = await fetch(`/api/document`, {
@@ -70,20 +75,23 @@ class Storage {
 
 	deleteFile(identifier: string) {
 		this.files[identifier].deleted = true;
+		this.emitFile(this.files[identifier]);
+		//this.saveLocal();
 	}
 
 	changeFileName(file: file, newName: string) {
 		this.files[file.identifier].filename = newName;
+		this.emitFile(this.files[file.identifier]);
 	}
 
 	updateContents(file: file, newContent: string) {
 		this.files[file.identifier].content = newContent;
-		this.saveLocal();
+		this.emitFile(this.files[file.identifier]);
 	}
 
 	updateFileName(file: file, newName: string) {
 		this.files[file.identifier].filename = newName;
-		this.saveLocal();
+		this.emitFile(this.files[file.identifier]);
 	}
 
 	getFile(fileId: string): file {
@@ -96,19 +104,8 @@ class Storage {
 			files: this.files,
 			next_number: this.next_number
 		});
+		// do this if there has been a change
 		localStorage.setItem('files', Json_state);
-
-		// update all documents
-		console.log('[Storage Engine] POSTING CHANGES TO DB');
-		const data = await fetch(`/api/documents`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			credentials: 'include',
-			body: JSON.stringify(Object.values(this.files))
-		});
-		if (data.status != 200) {
-			alert('Error communicating with server');
-		}
 	}
 
 	retrieveLocal() {
@@ -121,6 +118,14 @@ class Storage {
 		this.displayed = stored.displayed;
 		this.files = stored.files;
 		this.next_number = stored.next_number;
+	}
+
+	emit(){
+		emitState(this.files, this.currentUser);
+	}
+
+	emitFile(file: file){
+		emitState(this.files[file.identifier], this.currentUser);
 	}
 }
 

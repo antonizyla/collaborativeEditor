@@ -5,7 +5,6 @@ class Editors {
 	editors: file[];
 	open: file | null;
 	currentTextBuffer: string;
-	currentFileName: string;
 	editorElement: HTMLElement | null;
 	tabClickTimer: number;
 	editableTabNames: Record<string, string>;
